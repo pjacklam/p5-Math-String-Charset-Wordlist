@@ -1,20 +1,15 @@
-
 #############################################################################
 # Math/String/Charset/Wordlist.pm -- a dictionary charset for Math/String
-#
-# Copyright (C) 2003 by Tels. All rights reserved.
-#############################################################################
-
-use strict;
 
 package Math::String::Charset::Wordlist;
 use vars qw($VERSION @ISA);
 require  5.005;		# requires this Perl version or later
 require DynaLoader;
 require Math::String::Charset;
+use strict;
 @ISA = qw/Math::String::Charset Exporter DynaLoader/;
 
-$VERSION = 0.05;	# Current version of this package
+$VERSION = 0.06;	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
@@ -25,24 +20,23 @@ $die_on_error = 1;              # set to 0 to not die
 
 # following hash values are used:
 # _clen  : length of one character (all chars must have same len unless sep)
-# _ones  : list of one-character strings (cross of _end and _start)
 # _start : contains array of all valid start characters
 # _end   : contains hash (for easier lookup) of all valid end characters
 # _order : = 1
 # _type  : = 2
 # _error : error message or ""
-# _count : array of count of different strings with length x
-# _sum   : array of starting number for strings with length x
-#          _sum[x] = _sum[x-1]+_count[x-1]
-# _cnt   : number of elements in _count and _sum (as well as in _scnt & _ssum)
-# _cnum  : number of characters in _ones as BigInt (for speed)
 # _minlen: minimum string length (anything shorter is invalid), default -inf
 # _maxlen: maximum string length (anything longer is invalid), default +inf
 
-# simple ones:
-# _sep  : separator string (undef for none)
-# _map  : mapping character to number
+# unused here:
+# _ones  : list of one-character strings (cross of _end and _start)
+# _cnt   : number of elements in _count and _sum (as well as in _scnt & _ssum)
+# _count : array of count of different strings with length x
+# _sum   : array of starting number for strings with length x
+#          _sum[x] = _sum[x-1]+_count[x-1]
+# _cnum  : number of characters in _ones as BigInt (for speed)
 
+# wordlist:
 # _file : path/filename
 # _len  : count of records (as BigInt)
 # _len_s: count of records (as scalar)
@@ -163,20 +157,6 @@ sub is_valid
   1;
   }
 
-sub minlen
-  {
-  my $self = shift;
-
-  $self->{_minlen};
-  }
-
-sub maxlen
-  {
-  my $self = shift;
-
-  $self->{_maxlen};
-  }
-
 sub start
   {
   # this returns all the words (warning, this can eat a lot of memory)
@@ -265,6 +245,14 @@ sub copy
       }
     }
   $self;
+  }
+
+sub chars
+  {
+  my ($self,$x) = @_;
+
+  # XXX return always 1 to signal that $x has only one character
+  1;
   }
 
 sub count
@@ -481,12 +469,14 @@ sub DELETE
   {
   my $self = shift;
 
+  # untie and free our record-keeper
   _free($self->{_obj}) if $self->{_obj};
   }
 
 __END__
 
 #############################################################################
+=pod
 
 =head1 NAME
 
@@ -531,31 +521,31 @@ errors), then use the following:
 
 	$Math::String::Charset::Wordlist::die_on_error = 0;
 
-	$a = new Math::String::Charset::Wordlist ();	# error, empty set!
+	$a = Math::String::Charset::Wordlist->new();	# error, empty set!
 	print $a->error(),"\n";
 
 =head1 INTERNAL DETAILS
 
 This object caches certain calculation results (f.i. which word is stored
 at which offset in the file etc), thus greatly speeding up sequentiell
-Math::String conversations from string to number, and vice versa.
+L<Math::String> conversations from string to number, and vice versa.
 
 =head1 METHODS
 
 =head2 B<new()>
 
-            new();
+            Math::String::Charset::Wordlist->new();
 
-Create a new Math::Charset::Wordlist object. 
+Create a new Math::String::Charset::Wordlist object. 
 
 The constructor takes a HASH reference. The following keys can be used:
 
-	minlen		Minimum string length, -inf if not defined
-	maxlen		Maximum string length, +inf if not defined
+	minlen		Minimum string length, for now always 0
+	maxlen		Maximum string length, for now always 1
 	file		path/filename of wordlist file
 	sep		separator character, none if undef
 
-The resulting charset will always be of order 0, type 3.
+The resulting charset will always be of order 1, type 2.
 
 The wordlist file must be sorted alphabetically (just like C<sort -u> does),
 otherwise the results from converting between string and number form are
@@ -571,10 +561,15 @@ Note that the minlen might be adjusted to a greater number, if it is set to 1
 or greater, but there are not valid strings with 2,3 etc. In this case the
 minlen will be set to the first non-empty class of the charset.
 
+For wordlists, the minlen is always 0 (thus making '' the first valid string).
+
 =item maxlen
 
 Optional maximum string length. Any string longer than this will be invalid.
 Must be longer than a (possible defined) minlen. If not given is set to +inf.
+
+For wordlists, the maxlen is always 1 (thus making the last word in the
+dictionary the last valid string).
 
 =back
 
@@ -801,7 +796,7 @@ None discovered yet.
 If you use this module in one of your projects, then please email me. I want
 to hear about how my code helps you ;)
 
-This module is (C) Copyright by Tels http://bloodgate.com 2003.
+This module is (C) Copyright by Tels http://bloodgate.com 2003-2004.
 
 =cut
 
