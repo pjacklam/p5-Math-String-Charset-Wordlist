@@ -14,7 +14,7 @@ require DynaLoader;
 require Math::String::Charset;
 @ISA = qw/Math::String::Charset Exporter DynaLoader/;
 
-$VERSION = 0.04;	# Current version of this package
+$VERSION = 0.05;	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
@@ -304,7 +304,7 @@ sub num2str
   return undef if ($x->sign() !~ /^[+-]$/);
 
   my $l = '';			# $x == 0 as default
-  my $int = $x->numify();
+  my $int = abs($x->numify());
   if ($int > 0)
     {
     $l = _record($self->{_obj}, $int-1);

@@ -31,8 +31,10 @@ struct Offsets
   FILE* file;
   };
 
-#define BUFFER_SIZE 8192
+/* if buffer below grows bigger than 8192 bytes, adapt test in testsuite! */
 #define READ_BUFFER_SIZE 8 * 1024
+
+#define BUFFER_SIZE 8192
 
 MODULE = Math::String::Charset::Wordlist PACKAGE = Math::String::Charset::Wordlist
 
@@ -55,14 +57,13 @@ _file(n)
   SV*	n
   INIT:
 	int c;
-	long ofs;
 	long i;
 	int len;
 	unsigned char *name;
 	struct Offsets* offset;
 	long buffer[BUFFER_SIZE];
 	unsigned char read_buffer[READ_BUFFER_SIZE];
-	long buffered, idx;
+	long buffered, idx, base, ofs;
         size_t read;
 
   CODE:
@@ -92,17 +93,17 @@ _file(n)
     offset->cur_size = BUFFER_SIZE;
     buffered = 0;
     ofs = 0;					/* 0 for first record */
+    base = 0;					/* 0 for first block */
     read = fread(
       read_buffer, sizeof(unsigned char), READ_BUFFER_SIZE, offset->file);
     idx = 0;
     while (read != 0)
-	/* (c = fgetc(offset->file)) != EOF)*/
       {
       c = read_buffer[idx]; idx++;
       # line end?
       if (c == 0x0a)
         {
-        buffer[buffered++] = ofs; ofs = idx; 
+        buffer[buffered++] = ofs + base; ofs = idx;
         if (buffered >= BUFFER_SIZE)
           {
           if (offset->max_offsets + buffered > offset->cur_size)
@@ -120,10 +121,9 @@ _file(n)
         }
       if (idx == read)
         {
-        ofs = ftell(offset->file);
         read = fread(
           read_buffer, sizeof(unsigned char), READ_BUFFER_SIZE, offset->file);
-        idx = 0;
+        base += idx; ofs -= idx; idx = 0;
         }
       }
     if (buffered != 0)
@@ -140,8 +140,11 @@ _file(n)
         offset->record_offsets[offset->max_offsets++] = buffer[i];
         }
       }
-
-    /* TODO XXX: care for last record having no 0x0a !? */
+    if (c != 0x0a)
+      {
+      /* TODO: last character in file was not line end, so we missed the last
+         record */
+      }
 
     XSRETURN(1);
 
@@ -251,12 +254,12 @@ _record(ptr,n)
 
     fgets(buf, READ_BUFFER_SIZE, offset->file);	 /* read in the record */
     len = strlen(buf);
-    if (buf[len-1] == 0x0a)
+    if (len > 0 && buf[len-1] == 0x0a)
       {
       len--;				/* kill the 0x0a character at end */
       buf[len] = 0;
       }
-    if (buf[len-1] == 0x0d)
+    if (len > 0 && buf[len-1] == 0x0d)
       {
       len--;				/* kill the 0x0d character at end */
       buf[len] = 0;
