@@ -11,7 +11,7 @@ BEGIN
   unshift @INC, '../lib'; # to run manually
   unshift @INC, '../blib/arch';
   chdir 't' if -d 't';
-  plan tests => 178;
+  plan tests => 179;
   }
 
 use Math::String::Charset::Wordlist;
@@ -107,6 +107,9 @@ is ($x,'wordlist');
 $x--;
 is ($x - Math::BigInt->new(5), '');
 is ($x,'unsorted');
+
+# excercise Math::String::Charset::Wordlist::chars()
+is ($x->length(),1);
 
 ##############################################################################
 # creating via Math::String::Charset w/ scale

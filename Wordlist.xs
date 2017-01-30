@@ -6,7 +6,7 @@
 /*
 
   Math::String::Charset::Wordlist XS code 
-  (C) 2003 by Tels <http://bloodgate.com/perl/>
+  (C) 2003-2004 by Tels <http://bloodgate.com/perl/>
 
   Provide routines that let us get the offsets and records from a file
   containing a list of words (one word on each line)
@@ -52,7 +52,7 @@ PROTOTYPES: ENABLE
 # _file() - set the filename (open the file, ed all the offsets, close it)
 # return number of records on success, undef on failure
 
-SV*
+void
 _file(n)
   SV*	n
   INIT:
@@ -66,7 +66,7 @@ _file(n)
 	long buffered, idx, base, ofs;
         size_t read;
 
-  CODE:
+  PPCODE:
     name = SvPVX(n);				/* get ptr to storage */
     
     len = sizeof (struct Offsets);
@@ -148,14 +148,13 @@ _file(n)
 
     XSRETURN(1);
 
-SV*
+void
 _free(ptr)
   SV* ptr
-
   INIT:
 	struct Offsets* offset;
   CODE:
-    offset = (struct Offsets*) SvPVX(ST(0));	/* get ptr to storage */
+    offset = (struct Offsets*) SvPVX(ptr);	/* get ptr to storage */
     if (offset != NULL)
       {
       fclose(offset->file);
@@ -165,15 +164,16 @@ _free(ptr)
 ##############################################################################
 # _records(ptr,n), return the number of records
 
-SV*
+void
 _records(ptr)
   SV*	ptr
 
   INIT:
 	struct Offsets* offset;
-  CODE:
-    offset = (struct Offsets*) SvPVX(ST(0));	/* get ptr to storage */
+  PPCODE:
+    offset = (struct Offsets*) SvPVX(ptr);	/* get ptr to storage */
     ST(0) = sv_2mortal( newSVnv( offset->max_offsets ));
+    XSRETURN(1);		
 
 ##############################################################################
 # _offset(n), return the offset for record n. If the offset was not yet read,
@@ -181,18 +181,17 @@ _records(ptr)
 # the offset, or undef for "record does not exists" (e.g. file has fewer
 # records than n).
 
-SV*
+void
 _offset(ptr,n)
   SV*	ptr
   SV*	n
   INIT:
 	long N;
-	long ofs;
 	struct Offsets* offset;
-  CODE:
+  PPCODE:
     N = SvNV(n);
 
-    offset = (struct Offsets*) SvPVX(ST(0));	/* get ptr to storage */
+    offset = (struct Offsets*) SvPVX(ptr);	/* get ptr to storage */
 
     /* offset exists? */
     if (N >= 0 && N < offset->max_offsets)
@@ -209,7 +208,7 @@ _offset(ptr,n)
 ##############################################################################
 # _record(n), return the record number N
 
-SV *
+void
 _record(ptr,n)
   SV*	ptr
   SV*	n
@@ -220,10 +219,10 @@ _record(ptr,n)
 	char* buf;
 	struct Offsets* offset;
 
-  CODE:
+  PPCODE:
     N = (int)SvNV(n);
 
-    offset = (struct Offsets*) SvPVX(ST(0));	/* get ptr to storage */
+    offset = (struct Offsets*) SvPVX(ptr);	/* get ptr to storage */
 
     if (offset == NULL)
       {

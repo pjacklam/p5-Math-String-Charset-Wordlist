@@ -54,3 +54,8 @@ Math::String::Charset::Wordlist
   * more tests
   * we need Test::Simple, so list it in Makefile.PL
 
+2004-08-13 v0.06 Tels  179 tests
+  * override chars() from Charset.pm and return 1
+  * minlen()/maxlen() can be inherited
+  * adjust prerequisites
+  * fix warnings about unused vars in XS code

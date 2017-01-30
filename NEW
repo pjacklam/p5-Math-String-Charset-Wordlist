@@ -1,10 +1,8 @@
-This lists only the changes for the current release (v0.05) over the last
+This lists only the changes for the current release (v0.06) over the last
 version, since CHANGES is now quite big:
 
-* if record len was 0, _record() bombed (buffer underflow)
-* dictionaries with more than 8192 bytes did not work, due to bug in offset
-  reading
-* num2str() did not work for negative numbers (abs() missing)
-* more tests
-* we need Test::Simple, so list it in Makefile.PL
+* override chars() from Charset.pm and return 1
+* minlen()/maxlen() can be inherited
+* adjust prerequisites
+* fix warnings about unused vars in XS code
 
