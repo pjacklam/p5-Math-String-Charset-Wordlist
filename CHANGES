@@ -1,0 +1,20 @@
+
+Complete version history
+========================
+
+############################################################################## 
+Math::String::Charset::Wordlist 
+
+2003-02-06 v0.01 Tels
+  * first version
+2003-04-14 v0.02 Tels
+  * fix for scale not beeing a legal parameter to new()
+  * added method copy() (with special case for Tie::File object)
+2003-04-27 v0.03 Tels  81 tests 
+  * added: file(), class()
+  * fixed: str2num: use the "normal" sorting of the wordlist (like
+ 	   "sort -u" produces), instead of "shortest strings first"
+  * fixed: ones(), start(), end(), char()
+  * made it's own distribution with XS code to replace File::Tie
+    _file(), _free(), _offset() and _record()
+

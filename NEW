@@ -1,0 +1,97 @@
+This lists only the changes for the current release (v0.03) over the last
+version, since CHANGES is now quite big:
+
+First relase:
+
+* 81 tests (offset(), copy(), file() and scale => $N in new(), start(), end()
+  ones(), char())
+* made it's own distribution
+* fixed start(), char(), ones() and end() to actually work
+* scale parameter to new() needs listing as allowed
+* added: method copy() to override Math::String::Charset::copy
+* added: methods file() and class()
+* speling fix in doc for Wordlist.pm
+* Wordlist.pm: The dictionary must now be sorted alphabetically, like sort -u
+  does, and no longer "shortest strings first".
+* offset() works now (see next item)
+* Uses XS code to read and store the offsets for the wordlist:
+  * MUCH faster and uses MUCH LESS memory. Benchmarking on a 1Ghz AMD under
+    Linux (Perl v.5.8.0) with a list consisting of all "words" from 'aaa' ..
+    'aaaa' (big.lst, 456977 words) and one consisting twice the amount
+    (big2.lst, 913954 words):
+
+	#!/usr/bin/perl -w
+	use Time::HiRes qw/time/;
+	use Math::String; use Math::String::Charset::Wordlist;
+	use Benchmark;
+
+	my $t1 = time();
+	my $cs =
+	 Math::String::Charset::Wordlist->new({ file => shift || 'big.lst' });
+	my $t2 = time() - $t1;
+	print "new() took $t2 seconds.\n";
+	
+	for (0 .. 2)
+	  {
+	  $t1 = time();
+	  print "contains ",$cs->class(1)," words.\n";
+	  $t2 = time() - $t1;
+	  print "FETCHALL took $t2 seconds.\n";
+	  }
+	timethese ( -5,
+	  {
+	  fetch_rand => sub { $cs->num2str(int(rand(100000))); },
+	  fetch_1 => sub { $cs->num2str(1); },
+	  find => sub { $cs->str2num( $cs->num2str(int(rand(100000))) ); },
+	  } );
+	__END__
+
+	        Wordlist v0.02    Wordlist v0.02    Wordlist v0.03
+	       Tie::File v0.93 	 Tie::File v0.94    Wordlist.xs
+   --------------------------------------------------------------------------
+    Overhead:
+                   4468 KByte	     4480 KByte	       4076 KByte
+   big.lst:
+    memory        15832 KByte	    14012 KByte        5804 KByte	
+    new()	 0.0015 s	   0.0015 s	    0.25910 s
+    FETCHALL()	16.0186 s	   1.5821 s	    0.00031 s
+    FETCHALL()	0.00020 s	  0.00020 s	    0.00018 s
+    FETCHALL()	0.00018 s	  0.00018 s	    0.00017 s
+    fetch_1:       7575/s            7952/s           11955/s
+    fetch_rand:    3056/s            2950/s            9923/s
+     find:           49/s	       50/s	         70/s
+   big2.lst:
+    memory        26960 KByte	    23304 KByte        7588 KByte	
+    new()	 0.0015 s	   0.0016 s	    0.55741 s
+    FETCHALL()	31.9132 s	   3.2058 s	    0.00033 s
+    FETCHALL()	0.00020 s	   0.0020 s	    0.00018 s
+    FETCHALL()	0.00018 s	   0.0018 s	    0.00018 s
+
+  Overhead is the memory consumed by loading Math::String::Charset::Wordlist
+  alone.
+
+  The difference is that Wordlist v0.02 (via Tie::File) is lazy in reading the
+  list in, thus new() is fast, but the first FETCHALL takes quite a lot of
+  time. Since usually you need FETCHALLL (Wordlist.pm needs to know how many
+  words are in the file), there is no way around it, and the new code takes
+  considerable less time (and space!) for this task.
+
+  Also interesting to note is that Tie::File has a read-cache, but Wordlist.xs
+  not. In cases where the cache is not involved, it is is over 3 times faster
+  when fetching a random record by it's number (even though there is
+  additional logic in Wordlist.pm, with a constant overhead) and about 1.4
+  times faster when searching the file (which is a binary search, fetching
+  various records). However, the case were the read cache comes into play,
+  like by reading the same record over and over (fetch_1), you can see that
+  the new XS code is _still_ faster than Tie::File :)
+
+  Note that the patched (still not applied/released by mjd at the writing of
+  this) Tie::File 0.94 is much faster than v0.93, but cannot reach the speed
+  of the XS code from Wordlist.xs. Wordlist.xs does simplify some things (like
+  having a fixed record separator), however, implementing variable record
+  seperators would not inflict the speed negatively (text search by Bayer&Moore
+  is O(m+n), where currently we have O(m)), in fact, it would likely to be 
+  even faster, since we would then need to read the file block-by-block,
+  instead byte-by-byte as we do now.
+
+

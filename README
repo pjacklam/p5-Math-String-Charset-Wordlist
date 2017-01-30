@@ -1,0 +1,22 @@
+Math with strings that are represented by big integers
+
+(C) ..--- ----- ----- .---- by - . .-.. ... .-.-.-  All rights reserved.
+
+This package complements Math::String with a charset that takes as the
+"character" a sorted list of words in a file, each word on a separate line.
+
+See INSTALL on how to unpack and install this package.
+
+You will very likely need newer versions of Math::BigInt and Math::BigFloat.
+
+See also ./examples for some example scripts.
+
+More information including HTMLified help and preliminary benchmark results
+are available under:
+
+	http://bloodgate.com/perl/
+
+Please send me test-reports, your experiences with this and your ideas - I love
+to hear about my work!
+
+Tels <http://bloodgate.com/>
