@@ -1,4 +1,3 @@
-#!/usr/bin/perl -w
 
 #############################################################################
 # Math/String/Charset/Wordlist.pm -- a dictionary charset for Math/String
@@ -12,11 +11,10 @@ package Math::String::Charset::Wordlist;
 use vars qw($VERSION @ISA);
 require  5.005;		# requires this Perl version or later
 require DynaLoader;
-require Exporter;
 require Math::String::Charset;
 @ISA = qw/Math::String::Charset Exporter DynaLoader/;
 
-$VERSION = 0.03;	# Current version of this package
+$VERSION = 0.04;	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
@@ -46,10 +44,10 @@ $die_on_error = 1;              # set to 0 to not die
 # _map  : mapping character to number
 
 # _file : path/filename
-# _len  : count of records
+# _len  : count of records (as BigInt)
+# _len_s: count of records (as scalar)
 # _scale: input/output scale
 # _obj  : tied object (containing the record-offsets and giving us the records)
-# _cache->{0} and _cache->{last}: first and last word in list
 
 #############################################################################
 # private, initialize self 
@@ -94,7 +92,8 @@ sub _initialize
 
   die ("Couldn't read $self->{_file}") unless defined $self->{_obj};
   
-  $self->{_len} = Math::BigInt->new( _records($self->{_obj}) );
+  $self->{_len_s} = _records($self->{_obj});
+  $self->{_len} = Math::BigInt->new( $self->{_len_s} );
 
   # only one "char" for now
   $self->{_minlen} = 0;
@@ -111,8 +110,8 @@ sub offset
   # return the offset of the n'th word into the file
   my ($self,$n) = @_;
 
+  $n = $self->{_len_s} + $n if $n < 0;
   _offset($self->{_obj},$n);
-
   }
 
 sub file
@@ -201,15 +200,7 @@ sub end
   # in scalar context, returns length()
   my $self = shift;
 
-  return $self->{_len} unless wantarray;
- 
-  my @words = ();
-  my $OBJ = $self->{_obj};
-  for (my $i = 0; $i < $self->{_len}; $i++)
-    {
-    push @words, _record($OBJ,$i);
-    }
-  @words; 
+  $self->start();
   }
 
 sub ones
@@ -218,15 +209,7 @@ sub ones
   # in scalar context, returns length()
   my $self = shift;
 
-  return $self->{_len} unless wantarray;
- 
-  my @words = ();
-  my $OBJ = $self->{_obj};
-  for (my $i = 0; $i < $self->{_len}; $i++)
-    {
-    push @words, _record($OBJ,$i);
-    }
-  @words; 
+  $self->start();
   }
 
 sub copy
@@ -336,20 +319,19 @@ sub str2num
 
   return Math::BigInt->bzero() if !defined $str || $str eq '';
 
-#  $self->{_searches}++;
+  my $OBJ = $self->{_obj};
 
   # do a binary search for the string in the array of strings
-  my $left = 0; my $right = $self->{_len}->numify() - 1;
+  my $left = 0; my $right = $self->{_len_s} - 1;
+
+  my $leftstr = _record($OBJ,$left);
+  return Math::BigInt->new($left+1) if $leftstr eq $str;
+  my $rightstr = _record($OBJ,$right);
+  return Math::BigInt->new($right+1) if $rightstr eq $str;
+
   my $middle;
-  my $OBJ = $self->{_obj};
   while ($right - $left > 1)
     {
-#    $self->{_search_steps}++;
-    my $leftstr = _record($OBJ,$left);
-    return Math::BigInt->new($left+1) if $leftstr eq $str;
-    my $rightstr = _record($OBJ,$right);
-    return Math::BigInt->new($right+1) if $rightstr eq $str;
-
     # simple middle median computing
     $middle = int(($left + $right) / 2);
 
@@ -359,9 +341,9 @@ sub str2num
     if ($rr - $ll > 1)
       {
       my $mm = ord(substr($str,0,1));
-      $mm ++ if $mm == $ll;
-      $mm -- if $mm == $rr;
-      #print "ll $ll mm $mm rr $rr\n";
+      $mm++ if $mm == $ll;
+      $mm-- if $mm == $rr;
+    
       # now make $middle so that :
       # $mm - $ll      $middle - $left    
       # ----------- = ----------------- =>
@@ -372,25 +354,25 @@ sub str2num
       #            $rr - $ll
       $middle = $left +
         int(($mm - $ll) * ($right - $left) / ($rr - $ll));
-      $middle ++ if $middle == $left;
-      $middle -- if $middle == $right;
+      $middle++ if $middle == $left;
+      $middle-- if $middle == $right;
       }
 
     my $middlestr = _record($OBJ,$middle);
     return Math::BigInt->new($middle+1) if $middlestr eq $str;
+
     # so it is neither left, nor right nor middle, so see in which half it
     # should be
 
     my $cmp = $middlestr cmp $str;
-
     # cmp != 0 here
     if ($cmp < 0)
       {
-      $left = $middle;
+      $left = $middle; $leftstr = $middlestr;
       }
     else
       {
-      $right = $middle;
+      $right = $middle; $rightstr = $middlestr;
       }
     }
   return if $right - $left == 1;        # not found
@@ -403,7 +385,7 @@ sub char
   my $self = shift;
   my $char = shift || 0;
 
-  $char = $self->{_len}->numify() + $char if $char < 0;
+  $char = $self->{_len_s} + $char if $char < 0;
   _record($self->{_obj},$char); 
   }
 
@@ -440,7 +422,7 @@ sub last
   return if defined $self->{_maxlen} && $count > $self->{_maxlen};
   return '' if $count == 0;
 
-  my $str = _record($self->{_obj},$self->{_len}->numify()-1);
+  my $str = _record($self->{_obj},$self->{_len_s}-1);
   return $str if $count == 1;
  
   my $res = '';
