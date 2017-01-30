@@ -6,13 +6,13 @@ package Math::String::Charset::Wordlist;
 use vars qw($VERSION @ISA);
 use Math::BigInt;
 
-require  5.005;		# requires this Perl version or later
+require 5.008003;		# requires this Perl version or later
 require DynaLoader;
 require Math::String::Charset;
 use strict;
-@ISA = qw/Math::String::Charset Exporter DynaLoader/;
+@ISA = qw/Math::String::Charset  DynaLoader/;
 
-$VERSION = 0.07;	# Current version of this package
+$VERSION = 0.08;	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
@@ -481,7 +481,7 @@ Math::String::Charset::Wordlist - A dictionary charset for Math::String
 
 =head1 REQUIRES
 
-perl5.005, Exporter, DynaLoader, Math::BigInt, Math::String::Charset
+perl5.005, DynaLoader, Math::BigInt, Math::String::Charset
 
 =head1 EXPORTS
 
@@ -761,6 +761,26 @@ and updates the cache of the given Math::String.
 Return the path/name of the dictionary file beeing used in constructing this
 character set.
 
+=head2 B<num2str()>
+
+	my ($string,$length) = $charset->num2str($number);
+
+Converts a Math::BigInt/Math::String to a string. In list context it returns
+the string and the length, in scalar context only the string.
+
+=head2 B<str2num()>
+
+	$number = $charset->str2num($str);
+
+Converts a string (literal string or Math::String object) to the corrosponding
+number form (as Math::BigInt).
+
+=head2 B<offset()>
+
+	my $offset = $charset->offset($number);
+
+Returns the offset of the n'th word into the dictionary file.
+
 =head1 EXAMPLES
 
 	use Math::String;
@@ -786,7 +806,7 @@ None discovered yet.
 If you use this module in one of your projects, then please email me. I want
 to hear about how my code helps you ;)
 
-This module is (C) Copyright by Tels http://bloodgate.com 2003-2004.
+This module is (C) Copyright by Tels http://bloodgate.com 2003-2008.
 
 =cut
 
