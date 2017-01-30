@@ -1,97 +1,58 @@
-This lists only the changes for the current release (v0.03) over the last
+This lists only the changes for the current release (v0.04) over the last
 version, since CHANGES is now quite big:
 
-First relase:
+Math::String::Charset::Wordlist v0.04
 
-* 81 tests (offset(), copy(), file() and scale => $N in new(), start(), end()
-  ones(), char())
-* made it's own distribution
-* fixed start(), char(), ones() and end() to actually work
-* scale parameter to new() needs listing as allowed
-* added: method copy() to override Math::String::Charset::copy
-* added: methods file() and class()
-* speling fix in doc for Wordlist.pm
-* Wordlist.pm: The dictionary must now be sorted alphabetically, like sort -u
-  does, and no longer "shortest strings first".
-* offset() works now (see next item)
-* Uses XS code to read and store the offsets for the wordlist:
-  * MUCH faster and uses MUCH LESS memory. Benchmarking on a 1Ghz AMD under
-    Linux (Perl v.5.8.0) with a list consisting of all "words" from 'aaa' ..
-    'aaaa' (big.lst, 456977 words) and one consisting twice the amount
-    (big2.lst, 913954 words):
+* Optimized str2num: instead of fetching left/right over and over, we just
+  modify $leftstr/$rightstr to be $middlestr, and skip the comparisations
+  entirely. This brings a _big_ speed boost:
 
-	#!/usr/bin/perl -w
-	use Time::HiRes qw/time/;
-	use Math::String; use Math::String::Charset::Wordlist;
-	use Benchmark;
-
-	my $t1 = time();
-	my $cs =
-	 Math::String::Charset::Wordlist->new({ file => shift || 'big.lst' });
-	my $t2 = time() - $t1;
-	print "new() took $t2 seconds.\n";
-	
-	for (0 .. 2)
-	  {
-	  $t1 = time();
-	  print "contains ",$cs->class(1)," words.\n";
-	  $t2 = time() - $t1;
-	  print "FETCHALL took $t2 seconds.\n";
-	  }
 	timethese ( -5,
 	  {
 	  fetch_rand => sub { $cs->num2str(int(rand(100000))); },
 	  fetch_1 => sub { $cs->num2str(1); },
 	  find => sub { $cs->str2num( $cs->num2str(int(rand(100000))) ); },
 	  } );
-	__END__
+  
+  Math::String::Charset::Wordlist v0.03
+  new() took 0.269815921783447 seconds.
+  contains 456977 words.
+  FETCHALL took 0.000311970710754395 seconds.
+  Benchmark: running fetch_1, fetch_rand, find,
+	 for at least 3 CPU seconds...
+     fetch_1:  4s ( 3.02 usr +  0.06 sys =  3.08 CPU) @ 12128/s (n=37355)
+  fetch_rand:  3s ( 2.87 usr +  0.33 sys =  3.20 CPU) @ 10080/s (n=32256)
+        find:  3s ( 2.43 usr +  0.70 sys =  3.13 CPU) @  1786/s (n=5591)
 
-	        Wordlist v0.02    Wordlist v0.02    Wordlist v0.03
-	       Tie::File v0.93 	 Tie::File v0.94    Wordlist.xs
-   --------------------------------------------------------------------------
-    Overhead:
-                   4468 KByte	     4480 KByte	       4076 KByte
-   big.lst:
-    memory        15832 KByte	    14012 KByte        5804 KByte	
-    new()	 0.0015 s	   0.0015 s	    0.25910 s
-    FETCHALL()	16.0186 s	   1.5821 s	    0.00031 s
-    FETCHALL()	0.00020 s	  0.00020 s	    0.00018 s
-    FETCHALL()	0.00018 s	  0.00018 s	    0.00017 s
-    fetch_1:       7575/s            7952/s           11955/s
-    fetch_rand:    3056/s            2950/s            9923/s
-     find:           49/s	       50/s	         70/s
-   big2.lst:
-    memory        26960 KByte	    23304 KByte        7588 KByte	
-    new()	 0.0015 s	   0.0016 s	    0.55741 s
-    FETCHALL()	31.9132 s	   3.2058 s	    0.00033 s
-    FETCHALL()	0.00020 s	   0.0020 s	    0.00018 s
-    FETCHALL()	0.00018 s	   0.0018 s	    0.00018 s
+  Math::String::Charset::Wordlist v0.04
+  new() took 0.262001037597656 seconds.
+  contains 456977 words.
+  FETCHALL took 0.000311970710754395 seconds.
+  Benchmark: running fetch_1, fetch_rand, find for at least 5 CPU seconds...
+     fetch_1:  5s ( 5.15 usr +  0.06 sys =  5.21 CPU) @ 12023/s (n=62643)
+  fetch_rand:  6s ( 4.65 usr +  0.61 sys =  5.26 CPU) @ 10122/s (n=53242)
+        find:  5s ( 4.16 usr +  1.17 sys =  5.33 CPU) @  2470/s (n=13166)
 
-  Overhead is the memory consumed by loading Math::String::Charset::Wordlist
-  alone.
+* cache $self->{_len}->numify() in $self->{_len_s}:
+  + str2num() is now 2580/s vs. 2470/s
+  + last() is 98570/s vs. 34035/s
+* fixed _offset() to return undef of negative $N
+* _record(): raise limit from 1024 to 8192 bytes
+* _record(): remove 0x0D at record end, too (win32 files)
+* fixed offset(): return offset for record counting backwards (like char(-$N))
+* _file() reads in the file blockwise (8 KByte) instead of bytewise, this makes
+  if _much_ faster again:
 
-  The difference is that Wordlist v0.02 (via Tie::File) is lazy in reading the
-  list in, thus new() is fast, but the first FETCHALL takes quite a lot of
-  time. Since usually you need FETCHALLL (Wordlist.pm needs to know how many
-  words are in the file), there is no way around it, and the new code takes
-  considerable less time (and space!) for this task.
+  # perl time.pl big2.lst
+  Math::String::Charset::Wordlist v0.03
+  new() took 0.549798965454102 seconds.
+  contains 913954 words.
+  FETCHALL took 0.000316023826599121 seconds.
 
-  Also interesting to note is that Tie::File has a read-cache, but Wordlist.xs
-  not. In cases where the cache is not involved, it is is over 3 times faster
-  when fetching a random record by it's number (even though there is
-  additional logic in Wordlist.pm, with a constant overhead) and about 1.4
-  times faster when searching the file (which is a binary search, fetching
-  various records). However, the case were the read cache comes into play,
-  like by reading the same record over and over (fetch_1), you can see that
-  the new XS code is _still_ faster than Tie::File :)
-
-  Note that the patched (still not applied/released by mjd at the writing of
-  this) Tie::File 0.94 is much faster than v0.93, but cannot reach the speed
-  of the XS code from Wordlist.xs. Wordlist.xs does simplify some things (like
-  having a fixed record separator), however, implementing variable record
-  seperators would not inflict the speed negatively (text search by Bayer&Moore
-  is O(m+n), where currently we have O(m)), in fact, it would likely to be 
-  even faster, since we would then need to read the file block-by-block,
-  instead byte-by-byte as we do now.
+  perl -I/lib -I/blib/arch time.pl big2.lst
+  Math::String::Charset::Wordlist v0.04
+  new() took 0.0736250877380371 seconds.
+  contains 913954 words.
+  FETCHALL took 0.000316977500915527 seconds.
 
 

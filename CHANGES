@@ -7,9 +7,11 @@ Math::String::Charset::Wordlist
 
 2003-02-06 v0.01 Tels
   * first version
+
 2003-04-14 v0.02 Tels
   * fix for scale not beeing a legal parameter to new()
   * added method copy() (with special case for Tie::File object)
+
 2003-04-27 v0.03 Tels  81 tests 
   * added: file(), class()
   * fixed: str2num: use the "normal" sorting of the wordlist (like
@@ -17,4 +19,15 @@ Math::String::Charset::Wordlist
   * fixed: ones(), start(), end(), char()
   * made it's own distribution with XS code to replace File::Tie
     _file(), _free(), _offset() and _record()
+  * fixed: str2num(): use $self->{_len}->numify() instead of $self->count()
+           This makes the search _much_ faster since it no longer uses
+	   BigInt math (e.g. 1800/s vs. 70/s)
 
+2003-04-27 v0.04 Tels  152 tests
+  * speedup str2num: just set $leftstr/$rightstr from $middlestr instead of
+    fetching them over and over. (2470/s instead of 1800/s) 
+  * _offset(): return undef when a negative record number is passed
+  * offset(-$n): return offset counting from last record backwards
+  * _record(): increase limit from 1024 to 8192 bytes. (still, fixed limit is
+    baaad...) 
+  * _record(): remove 0x0A and 0x0D from record end (to cater for win32 files)

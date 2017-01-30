@@ -32,11 +32,7 @@ struct Offsets
   };
 
 #define BUFFER_SIZE 8192
-
-/* temp. storage buffer */
-long record_offsets[BUFFER_SIZE];
-long buffered;
-
+#define READ_BUFFER_SIZE 8 * 1024
 
 MODULE = Math::String::Charset::Wordlist PACKAGE = Math::String::Charset::Wordlist
 
@@ -44,7 +40,11 @@ PROTOTYPES: ENABLE
 
  #############################################################################
  # 2003-04-26 0.01 Tels
- #  * first try
+ #   * first try
+ # 2003-04-27 0.02 Tels
+ #   * _offset(): return undef on negative indices
+ #   * removed unused global variables (esp. 8K buffer)
+ #   * _file(): read block-wise
 
 ##############################################################################
 # _file() - set the filename (open the file, ed all the offsets, close it)
@@ -61,6 +61,9 @@ _file(n)
 	unsigned char *name;
 	struct Offsets* offset;
 	long buffer[BUFFER_SIZE];
+	unsigned char read_buffer[READ_BUFFER_SIZE];
+	long buffered, idx;
+        size_t read;
 
   CODE:
     name = SvPVX(n);				/* get ptr to storage */
@@ -88,14 +91,18 @@ _file(n)
 
     offset->cur_size = BUFFER_SIZE;
     buffered = 0;
-    ofs = ftell(offset->file);			/* 0 for first record */
-    i = 0;
-    while ((c = fgetc(offset->file)) != EOF)
+    ofs = 0;					/* 0 for first record */
+    read = fread(
+      read_buffer, sizeof(unsigned char), READ_BUFFER_SIZE, offset->file);
+    idx = 0;
+    while (read != 0)
+	/* (c = fgetc(offset->file)) != EOF)*/
       {
+      c = read_buffer[idx]; idx++;
       # line end?
       if (c == 0x0a)
         {
-        buffer[buffered++] = ofs; ofs = ftell(offset->file);
+        buffer[buffered++] = ofs; ofs = idx; 
         if (buffered >= BUFFER_SIZE)
           {
           if (offset->max_offsets + buffered > offset->cur_size)
@@ -110,6 +117,13 @@ _file(n)
 	    }
           buffered = 0;
           }
+        }
+      if (idx == read)
+        {
+        ofs = ftell(offset->file);
+        read = fread(
+          read_buffer, sizeof(unsigned char), READ_BUFFER_SIZE, offset->file);
+        idx = 0;
         }
       }
     if (buffered != 0)
@@ -127,7 +141,7 @@ _file(n)
         }
       }
 
-    /* TODO XXX: care for last record having no 0x0a */
+    /* TODO XXX: care for last record having no 0x0a !? */
 
     XSRETURN(1);
 
@@ -178,7 +192,7 @@ _offset(ptr,n)
     offset = (struct Offsets*) SvPVX(ST(0));	/* get ptr to storage */
 
     /* offset exists? */
-    if (N < offset->max_offsets)
+    if (N >= 0 && N < offset->max_offsets)
       {
       ST(0) = sv_2mortal( newSVnv( offset->record_offsets[N] ));
       }
@@ -229,21 +243,24 @@ _record(ptr,n)
     /* seek to the position */
     fseek (offset->file, ofs, SEEK_SET);
 
-    ST(0) = sv_2mortal(newSV(1024));		/* alloc scratch buffer */
+    ST(0) = sv_2mortal(newSV(READ_BUFFER_SIZE)); /* alloc scratch buffer */
     SvPOK_on(ST(0));
 
-    buf = SvPVX(ST(0));			/* get ptr to storage */
+    buf = SvPVX(ST(0));				 /* get ptr to storage */
     //printf ("Buffer %p\n",buf);
 
-    fgets(buf, 1024, offset->file);	/* read in the record */
+    fgets(buf, READ_BUFFER_SIZE, offset->file);	 /* read in the record */
     len = strlen(buf);
     if (buf[len-1] == 0x0a)
       {
       len--;				/* kill the 0x0a character at end */
       buf[len] = 0;
       }
-
-    //printf ("Read '%s'\n",buf);
+    if (buf[len-1] == 0x0d)
+      {
+      len--;				/* kill the 0x0d character at end */
+      buf[len] = 0;
+      }
 
     SvCUR_set(ST(0), len);		/* and set real length */
     XSRETURN(1);
