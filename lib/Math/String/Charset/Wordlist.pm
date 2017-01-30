@@ -2,18 +2,19 @@
 # Math/String/Charset/Wordlist.pm -- a dictionary charset for Math/String
 
 package Math::String::Charset::Wordlist;
+
 use vars qw($VERSION @ISA);
+use Math::BigInt;
+
 require  5.005;		# requires this Perl version or later
 require DynaLoader;
 require Math::String::Charset;
 use strict;
 @ISA = qw/Math::String::Charset Exporter DynaLoader/;
 
-$VERSION = 0.06;	# Current version of this package
+$VERSION = 0.07;	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
-
-use Math::BigInt;
 
 use vars qw/$die_on_error/;
 $die_on_error = 1;              # set to 0 to not die
@@ -27,14 +28,6 @@ $die_on_error = 1;              # set to 0 to not die
 # _error : error message or ""
 # _minlen: minimum string length (anything shorter is invalid), default -inf
 # _maxlen: maximum string length (anything longer is invalid), default +inf
-
-# unused here:
-# _ones  : list of one-character strings (cross of _end and _start)
-# _cnt   : number of elements in _count and _sum (as well as in _scnt & _ssum)
-# _count : array of count of different strings with length x
-# _sum   : array of starting number for strings with length x
-#          _sum[x] = _sum[x-1]+_count[x-1]
-# _cnum  : number of characters in _ones as BigInt (for speed)
 
 # wordlist:
 # _file : path/filename
@@ -428,13 +421,10 @@ sub next
   {
   my ($self,$str) = @_;
 
-# for timing disable it here:
-#  $str->{_cache}->{str} = undef; return;
-#  return if !defined $str->{_cache}->{str};
-  if ($str->{_cache}->{str} eq '')				# 0 => 1
+  if ($str->{_cache} eq '')				# 0 => 1
     {
     my $min = $self->{_minlen}; $min = 1 if $min <= 0;
-    $str->{_cache}->{str} = $self->first($min);
+    $str->{_cache} = $self->first($min);
     return;
     }
 
@@ -445,7 +435,7 @@ sub next
   # update-time in vain.
 
   # extract the current value
-  #$str->{_cache}->{str} = _record($self->{_obj}, $str->numify()-1);
+  #$str->{_cache} = _record($self->{_obj}, $str->numify()-1);
   $str->{_cache} = undef;
   }
 
@@ -453,15 +443,15 @@ sub prev
   {
   my ($self,$str) = @_;
 
-  if ($str->{_cache}->{str} eq '')				# 0 => -1
+  if ($str->{_cache} eq '')				# 0 => -1
     {
     my $min = $self->{_minlen}; $min = -1 if $min >= 0;
-    $str->{_cache}->{str} = $self->first($min);
+    $str->{_cache} = $self->first($min);
     return;
     }
 
   # extract the current value
-  #$str->{_cache}->{str} = _record($self->{_obj}, $str->numify()-1);
+  #$str->{_cache} = _record($self->{_obj}, $str->numify()-1);
   $str->{_cache} = undef;
   }
 

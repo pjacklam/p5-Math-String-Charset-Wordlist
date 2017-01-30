@@ -59,3 +59,7 @@ Math::String::Charset::Wordlist
   * minlen()/maxlen() can be inherited
   * adjust prerequisites
   * fix warnings about unused vars in XS code
+
+2004-11-20 v0.07 Tels  179 tests
+  * make to work with Math::String v1.25
+
