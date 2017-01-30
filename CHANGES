@@ -1,4 +1,9 @@
 
+2008-04-03 0.08 Tels 181 tests
+  * modernize package (bundle Module::Install etc.)
+  * add POD tests
+  * we don't need to have Exporter in @ISA
+
 Complete version history
 ========================
 
