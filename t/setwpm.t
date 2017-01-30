@@ -11,7 +11,7 @@ BEGIN
   unshift @INC, '../lib'; # to run manually
   unshift @INC, '../blib/arch';
   chdir 't' if -d 't';
-  plan tests => 152;
+  plan tests => 178;
   }
 
 use Math::String::Charset::Wordlist;
@@ -198,4 +198,57 @@ for my $list (qw/testbig.lst test0d.lst/)
   is ($cs->str2num('unsorted'),13);
   is ($cs->str2num('wordlist'),14);
   }
+
+##############################################################################
+# big list withmore than 8192 bytes (if size of readbuffer ever increases,
+# then # adapt this test!)
+
+$a = $c->new( { file => 'big.lst' } );
+is ($a->error(),"");
+is (ref($a),$c);
+is ($a->isa('Math::String::Charset'),1);
+is ($a->file(),'big.lst');
+
+is ($a->first(1),'aachen', 'first in big list');
+is ($a->last(1),'abfliegt', 'last in big list');
+
+is ($a->num2str(0),'');
+is ($a->num2str(-1),'aachen');
+is ($a->num2str(663),'abfliegt');
+
+#abflauendem
+#abflauenden
+#abflauender
+#abfliegend
+#abfliegende
+#abfliegendem
+#abfliegender
+#abfliegendes
+#abfliegt
+
+is ($a->num2str(655),'abflauendem');
+is ($a->num2str(656),'abflauenden');
+is ($a->num2str(657),'abflauender');
+is ($a->num2str(658),'abfliegend');
+is ($a->num2str(659),'abfliegende');
+is ($a->num2str(660),'abfliegendem');
+is ($a->num2str(661),'abfliegender');
+is ($a->num2str(662),'abfliegendes');
+is ($a->num2str(663),'abfliegt');
+
+
+##############################################################################
+
+$a = $c->new( { file => 'empty.lst' } );
+is ($a->error(),"");
+is (ref($a),$c);
+is ($a->isa('Math::String::Charset'),1);
+is ($a->file(),'empty.lst');
+
+is ($a->first(1),'', 'first in empty list');
+is ($a->last(1),'', 'last in empty list');
+is ($a->length(),2, 'len in empty list');
+
+is (join(":", $a->start() ), ':');
+
 

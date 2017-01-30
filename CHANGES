@@ -31,3 +31,26 @@ Math::String::Charset::Wordlist
   * _record(): increase limit from 1024 to 8192 bytes. (still, fixed limit is
     baaad...) 
   * _record(): remove 0x0A and 0x0D from record end (to cater for win32 files)
+  * _file() reads in the file blockwise (8 KByte) instead of bytewise, this
+    makes if _much_ faster again:
+
+   # perl time.pl big2.lst
+    Math::String::Charset::Wordlist v0.03
+    new() took 0.549798965454102 seconds.
+    contains 913954 words.
+    FETCHALL took 0.000316023826599121 seconds.
+
+    perl -I/lib -I/blib/arch time.pl big2.lst
+    Math::String::Charset::Wordlist v0.04
+    new() took 0.0736250877380371 seconds.
+    contains 913954 words.
+    FETCHALL took 0.000316977500915527 seconds.
+
+2003-04-28 v0.05 Tels  178 tests
+  * if record len was 0, _record() bombed (buffer underflow)
+  * dictionaries with more than 8192 bytes did not work, due to bug in offset
+    reading
+  * num2str() did not work for negative numbers (abs() missing)
+  * more tests
+  * we need Test::Simple, so list it in Makefile.PL
+
