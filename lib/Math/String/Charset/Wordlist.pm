@@ -12,7 +12,7 @@ require Math::String::Charset;
 use strict;
 @ISA = qw/Math::String::Charset  DynaLoader/;
 
-$VERSION = 0.08;	# Current version of this package
+$VERSION = 0.09;	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
@@ -37,7 +37,7 @@ $die_on_error = 1;              # set to 0 to not die
 # _obj  : tied object (containing the record-offsets and giving us the records)
 
 #############################################################################
-# private, initialize self 
+# private, initialize self
 
 sub _strict_check
   {
@@ -67,7 +67,7 @@ sub _initialize
   $self->{_sep} = $value->{sep};		# separator char
 
   $self->{_file} = $value->{file} || '';	# filename and path
- 
+
   if (!-f $self->{_file} || !-e $self->{_file})
     {
     return $self->{_error} = "Cannot open dictionary '$self->{_file}': $!\n";
@@ -78,7 +78,7 @@ sub _initialize
   $self->{_obj} = _file($self->{_file});
 
   die ("Couldn't read $self->{_file}") unless defined $self->{_obj};
-  
+
   $self->{_len_s} = _records($self->{_obj});
   $self->{_len} = Math::BigInt->new( $self->{_len_s} );
 
@@ -86,7 +86,7 @@ sub _initialize
   $self->{_minlen} = 0;
   $self->{_maxlen} = 1;
 
-  return $self->{_error} = 
+  return $self->{_error} =
    "Minlen ($self->{_minlen} must be <= than maxlen ($self->{_maxlen})"
     if ($self->{_minlen} >= $self->{_maxlen});
   $self;
@@ -157,16 +157,16 @@ sub start
   my $self = shift;
 
   return $self->{_len} unless wantarray;
- 
+
   my @words = ();
   my $OBJ = $self->{_obj};
   for (my $i = 0; $i < $self->{_len}; $i++)
     {
     push @words, _record($OBJ,$i);
     }
-  @words; 
+  @words;
   }
-      
+
 sub end
   {
   # this returns all the words (warning, this can eat a lot of memory)
@@ -278,10 +278,10 @@ sub class
 sub num2str
   {
   # convert Math::BigInt/Math::String to string
-  # in list context, return (string,stringlen) 
+  # in list context, return (string,stringlen)
   my ($self,$x) = @_;
 
-  $x = new Math::BigInt($x) unless ref $x; 
+  $x = new Math::BigInt($x) unless ref $x;
   return undef if ($x->sign() !~ /^[+-]$/);
 
   my $l = '';			# $x == 0 as default
@@ -324,11 +324,11 @@ sub str2num
       my $mm = ord(substr($str,0,1));
       $mm++ if $mm == $ll;
       $mm-- if $mm == $rr;
-    
+
       # now make $middle so that :
-      # $mm - $ll      $middle - $left    
+      # $mm - $ll      $middle - $left
       # ----------- = ----------------- =>
-      # $rr - $ll      $right - $left 
+      # $rr - $ll      $right - $left
       #
       #         ($mm - $ll) * ($right - $left)
       # $left + ----------------------------
@@ -367,7 +367,7 @@ sub char
   my $char = shift || 0;
 
   $char = $self->{_len_s} + $char if $char < 0;
-  _record($self->{_obj},$char); 
+  _record($self->{_obj},$char);
   }
 
 sub first
@@ -378,15 +378,15 @@ sub first
   return if $count < $self->{_minlen};
   return if defined $self->{_maxlen} && $count > $self->{_maxlen};
   return '' if $count == 0;
-  
+
   my $str = _record($self->{_obj},0);
 
   return $str if $count == 1;
- 
+
   my $s = $self->{_sep} || '';
   my $res = '';
   for (my $i = 0; $i < $count; $i++)
-    { 
+    {
     $res .= $s . $str;
     }
   $s = quotemeta($s);
@@ -405,7 +405,7 @@ sub last
 
   my $str = _record($self->{_obj},$self->{_len_s}-1);
   return $str if $count == 1;
- 
+
   my $res = '';
   my $s = $self->{_sep} || '';
   for (my $i = 1; $i <= $count; $i++)
@@ -466,6 +466,7 @@ sub DELETE
 __END__
 
 #############################################################################
+
 =pod
 
 =head1 NAME
@@ -490,7 +491,7 @@ Exports nothing.
 =head1 DESCRIPTION
 
 This module lets you create an charset object, which is used to construct
-Math::String objects. 
+Math::String objects.
 
 This object maps an external wordlist (aka a dictionary file where one
 line contains one word) to a simple charset, e.g. each word is one character
@@ -522,11 +523,13 @@ L<Math::String> conversations from string to number, and vice versa.
 
 =head1 METHODS
 
-=head2 B<new()>
+=over
+
+=item new()
 
             Math::String::Charset::Wordlist->new();
 
-Create a new Math::String::Charset::Wordlist object. 
+Create a new Math::String::Charset::Wordlist object.
 
 The constructor takes a HASH reference. The following keys can be used:
 
@@ -563,27 +566,27 @@ dictionary the last valid string).
 
 =back
 
-=head2 B<minlen()>
+=item minlen()
 
 	$charset->minlen();
 
 Return minimum string length.
 
-=head2 B<maxlen()>
+=item maxlen()
 
 	$charset->maxlen();
 
 Return maximum string length.
 
-=head2 B<length()>
+=item length()
 
 	$charset->length();
 
 Return the number of items in the charset, for higher order charsets the
-number of valid 1-character long strings. Shortcut for 
+number of valid 1-character long strings. Shortcut for
 C<< $charset->class(1) >>.
-  
-=head2 B<count()>
+
+=item count()
 
 Returns the count of all possible strings described by the charset as a
 positive BigInt. Returns 'inf' if no maxlen is defined, because there should
@@ -593,7 +596,7 @@ If maxlen is defined, forces a calculation of all possible L<class()> values
 and may therefore be very slow on the first call, it also caches possible
 lot's of values if maxlen is very high.
 
-=head2 B<class()>
+=item class()
 
 	$charset->class($order);
 
@@ -601,7 +604,7 @@ Return the number of items in a class.
 
 	print $charset->class(5);	# how many strings with length 5?
 
-=head2 B<char()>
+=item char()
 
 	$charset->char($nr);
 
@@ -611,7 +614,7 @@ Returns the character number $nr from the set, or undef.
 	print $charset->char(1);	# second char
 	print $charset->char(-1);	# last one
 
-=head2 B<lowest()>
+=item lowest()
 
 	$charset->lowest($length);
 
@@ -621,7 +624,7 @@ to (but much faster):
 	$str = $charset->first($length);
 	$number = $charset->str2num($str);
 
-=head2 B<highest()>
+=item highest()
 
 	$charset->highest($length);
 
@@ -632,35 +635,35 @@ to (but much faster):
 	$number = $charset->str2num($str);
         $number--;
 
-=head2 B<order()>
+=item order()
 
 	$order = $charset->order();
 
 Return the order of the charset: is always 1 for grouped charsets.
 See also L<type>.
 
-=head2 B<type()>
+=item type()
 
 	$type = $charset->type();
 
-Return the type of the charset: is always 1 for grouped charsets. 
+Return the type of the charset: is always 1 for grouped charsets.
 See also L<order>.
 
-=head2 B<charlen()>
+=item charlen()
 
 	$character_length = $charset->charlen();
 
 Return the length of one character in the set. 1 or greater. All charsets
-used in a grouped charset must have the same length, unless you specify a 
+used in a grouped charset must have the same length, unless you specify a
 seperator char.
 
-=head2 B<seperator()>
+=item seperator()
 
 	$sep = $charset->seperator();
 
 Returns the separator string, or undefined if none is used.
 
-=head2 B<chars()>
+=item chars()
 
 	$chars = $charset->chars( $bigint );
 
@@ -672,35 +675,35 @@ This is much faster than doing
 
 since it does not need to actually construct the string.
 
-=head2 B<first()>
+=item first()
 
 	$charset->first( $length );
 
 Return the first string with a length of $length, according to the charset.
 See C<lowest()> for the corrospending number.
 
-=head2 B<last()>
+=item last()
 
 	$charset->last( $length );
 
 Return the last string with a length of $length, according to the charset.
 See C<highest()> for the corrospending number.
 
-=head2 B<is_valid()>
+=item is_valid()
 
 	$charset->is_valid();
 
 Check wether a string conforms to the charset set or not.
 
-=head2 B<error()>
+=item error()
 
 	$charset->error();
 
-Returns "" for no error or an error message that occured if construction of 
+Returns "" for no error or an error message that occured if construction of
 the charset failed. Set C<$Math::String::Charset::die_on_error> to C<0> to
 get the error message, otherwise the program will die.
 
-=head2 B<start()>
+=item start()
 
 	$charset->start();
 
@@ -710,17 +713,17 @@ In scalar context returns the lenght of the B<start> set.
 
 Think of the start set as the set of all characters that can start a string
 with one or more characters. The set for one character strings is called
-B<ones> and you can access if via C<$charset->ones()>.
+B<ones> and you can access if via C<< $charset->ones() >>.
 
-=head2 B<end()>
+=item end()
 
 	$charset->end();
 
 In list context, returns a list of all characters in the end set, aka all
-characters a string can end with. 
+characters a string can end with.
 In scalar context returns the lenght of the B<end> set.
 
-=head2 B<ones()>
+=item ones()
 
 	$charset->ones();
 
@@ -734,7 +737,7 @@ character at the same time.
 
 The order of the chars in C<ones> is the same ordering as in C<start>.
 
-=head2 B<prev()>
+=item prev()
 
 	$string = Math::String->new( );
 	$charset->prev($string);
@@ -744,7 +747,7 @@ This is faster than decrementing the number of the string and converting the
 new number to a string. This routine is mainly used internally by Math::String
 and updates the cache of the given Math::String.
 
-=head2 B<next()>
+=item next()
 
 	$string = Math::String->new( );
 	$charset->next($string);
@@ -754,41 +757,43 @@ This is faster than incrementing the number of the string and converting the
 new number to a string. This routine is mainly used internally by Math::String
 and updates the cache of the given Math::String.
 
-=head2 B<file()>
+=item file()
 
 	$file = $charset->file();
 
 Return the path/name of the dictionary file beeing used in constructing this
 character set.
 
-=head2 B<num2str()>
+=item num2str()
 
 	my ($string,$length) = $charset->num2str($number);
 
 Converts a Math::BigInt/Math::String to a string. In list context it returns
 the string and the length, in scalar context only the string.
 
-=head2 B<str2num()>
+=item str2num()
 
 	$number = $charset->str2num($str);
 
 Converts a string (literal string or Math::String object) to the corrosponding
 number form (as Math::BigInt).
 
-=head2 B<offset()>
+=item offset()
 
 	my $offset = $charset->offset($number);
 
 Returns the offset of the n'th word into the dictionary file.
+
+=back
 
 =head1 EXAMPLES
 
 	use Math::String;
 	use Math::String::Charset::Wordlist;
 
-	my $cs = 
+	my $cs =
 	  Math::String::Charset::Wordlist->new( { file => 'big.sorted' } );
-	my $x = 
+	my $x =
 	  Math::String->new('',$cs)->binc();	# $x is now the first word
 
 	while ($x < Math::BigInt->new(10))	# Math::BigInt->new() necc.!
@@ -799,7 +804,44 @@ Returns the offset of the n'th word into the dictionary file.
 
 =head1 BUGS
 
-None discovered yet.
+Please report any bugs or feature requests to
+C<bug-math-string-charset-wordlist at rt.cpan.org>, or through the web
+interface at
+L<https://rt.cpan.org/Ticket/Create.html?Queue=Math-String-Charset-Wordlist>
+(requires login). We will be notified, and then you'll automatically be
+notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Math::String::Charset::Wordlist
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<https://rt.cpan.org/Dist/Display.html?Name=Math-String-Charset-Wordlist>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Math-String-Charset-Wordlist>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/dist/Math-String-Charset-Wordlist>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Math-String-Charset-Wordlist/>
+
+=item * CPAN Testers Matrix
+
+L<http://matrix.cpantesters.org/?dist=Math-String-Charset-Wordlist>
+
+=back
 
 =head1 AUTHOR
 
@@ -808,5 +850,6 @@ to hear about how my code helps you ;)
 
 This module is (C) Copyright by Tels http://bloodgate.com 2003-2008.
 
-=cut
+Copyright 2017- Peter John Acklam L<pjacklam@online.no>.
 
+=cut

@@ -33,4 +33,3 @@ timethese ( -3,
   #next => sub { $x->binc(); },
   #prev => sub { $x->bdec(); },
   } );
-
