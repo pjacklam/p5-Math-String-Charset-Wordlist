@@ -5,7 +5,7 @@
 
 /*
 
-  Math::String::Charset::Wordlist XS code 
+  Math::String::Charset::Wordlist XS code
   (C) 2003-2004 by Tels <http://bloodgate.com/perl/>
 
   Provide routines that let us get the offsets and records from a file
@@ -68,7 +68,7 @@ _file(n)
 
   PPCODE:
     name = SvPVX(n);				/* get ptr to storage */
-    
+
     len = sizeof (struct Offsets);
     ST(0) = newSV(len);		/* alloc enough to store one ptr */
     SvPOK_on(ST(0));
@@ -80,7 +80,7 @@ _file(n)
       {
       printf ("Cannot open file %s\n", SvPV_nolen(n));
       ST(0) = &PL_sv_undef;
-      XSRETURN(1);		
+      XSRETURN(1);
       }
     /* printf ("Opening %s\n", name); */
 
@@ -173,7 +173,7 @@ _records(ptr)
   PPCODE:
     offset = (struct Offsets*) SvPVX(ptr);	/* get ptr to storage */
     ST(0) = sv_2mortal( newSVnv( offset->max_offsets ));
-    XSRETURN(1);		
+    XSRETURN(1);
 
 ##############################################################################
 # _offset(n), return the offset for record n. If the offset was not yet read,
@@ -203,7 +203,7 @@ _offset(ptr,n)
       /* offset for record N does not exist, and file read completely */
       ST(0) = &PL_sv_undef;
       }
-    XSRETURN(1);		
+    XSRETURN(1);
 
 ##############################################################################
 # _record(n), return the record number N
@@ -228,7 +228,7 @@ _record(ptr,n)
       {
       printf ("Offset is empty!");
       ST(0) = &PL_sv_undef;
-      XSRETURN(1);		
+      XSRETURN(1);
       }
     //printf ("Fetching record %i (%p)\n",N,offset);
 
@@ -236,7 +236,7 @@ _record(ptr,n)
       {
       # offset (and thus record) does not exist
       ST(0) = &PL_sv_undef;
-      XSRETURN(1);		
+      XSRETURN(1);
       }
     ofs = offset->record_offsets[N];
 
@@ -266,5 +266,3 @@ _record(ptr,n)
 
     SvCUR_set(ST(0), len);		/* and set real length */
     XSRETURN(1);
-
-
