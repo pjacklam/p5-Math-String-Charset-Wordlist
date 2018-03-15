@@ -12,7 +12,7 @@ require Math::String::Charset;
 use strict;
 @ISA = qw/Math::String::Charset  DynaLoader/;
 
-$VERSION = 0.09;	# Current version of this package
+$VERSION = '0.10';	# Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
