@@ -1,5 +1,7 @@
 0.10 Not Released
 
+ * Modernize test file t/setwpm.t.
+
  * Clean whitespace and add test file t/release-whitespaces.t.
 
  * Convert t/pod_cov.t to t/release-pod-coverage.t.
