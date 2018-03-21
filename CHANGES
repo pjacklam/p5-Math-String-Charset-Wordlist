@@ -1,5 +1,7 @@
 0.10 Not Released
 
+ * New MANIFEST.SKIP file based on the default from ExtUtils::Manifest.
+
  * Modernize test file t/setwpm.t.
 
  * Clean whitespace and add test file t/release-whitespaces.t.
