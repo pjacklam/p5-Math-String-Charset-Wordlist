@@ -17,7 +17,7 @@ BEGIN
 use Math::String::Charset::Wordlist;
 use Math::String;
 
-$Math::String::Charset::die_on_error = 0;	# we better catch them
+$Math::String::Charset::die_on_error = 0;       # we better catch them
 my $a;
 
 my $c = 'Math::String::Charset::Wordlist';
@@ -73,7 +73,7 @@ is (scalar $a->ones(), 6);
 # num2str in list mode
 my @a = $a->num2str(1);
 is ($a[0],'dictionary');
-is ($a[1],1);		# one word is one "character"
+is ($a[1],1);           # one word is one "character"
 
 
 is ($a->length(),6);
@@ -253,5 +253,3 @@ is ($a->last(1),'', 'last in empty list');
 is ($a->length(),2, 'len in empty list');
 
 is (join(":", $a->start() ), ':');
-
-

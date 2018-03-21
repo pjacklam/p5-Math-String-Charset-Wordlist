@@ -6,13 +6,13 @@ package Math::String::Charset::Wordlist;
 use vars qw($VERSION @ISA);
 use Math::BigInt;
 
-require 5.008003;		# requires this Perl version or later
+require 5.008003;               # requires this Perl version or later
 require DynaLoader;
 require Math::String::Charset;
 use strict;
 @ISA = qw/Math::String::Charset  DynaLoader/;
 
-$VERSION = '0.10';	# Current version of this package
+$VERSION = '0.10';      # Current version of this package
 
 bootstrap Math::String::Charset::Wordlist $VERSION;
 
@@ -64,9 +64,9 @@ sub _initialize
   my ($self,$value) = @_;
 
   # sep char not used yet
-  $self->{_sep} = $value->{sep};		# separator char
+  $self->{_sep} = $value->{sep};                # separator char
 
-  $self->{_file} = $value->{file} || '';	# filename and path
+  $self->{_file} = $value->{file} || '';        # filename and path
 
   if (!-f $self->{_file} || !-e $self->{_file})
     {
@@ -284,7 +284,7 @@ sub num2str
   $x = new Math::BigInt($x) unless ref $x;
   return undef if ($x->sign() !~ /^[+-]$/);
 
-  my $l = '';			# $x == 0 as default
+  my $l = '';                   # $x == 0 as default
   my $int = abs($x->numify());
   if ($int > 0)
     {
@@ -390,7 +390,7 @@ sub first
     $res .= $s . $str;
     }
   $s = quotemeta($s);
-  $res =~ s/^$s// if $s ne '';		# remove first sep
+  $res =~ s/^$s// if $s ne '';          # remove first sep
   $res;
   }
 
@@ -413,7 +413,7 @@ sub last
     $res .= $s . $str;
     }
   $s = quotemeta($s);
-  $res =~ s/^$s// if $s ne '';		# remove first sep
+  $res =~ s/^$s// if $s ne '';          # remove first sep
   $res;
   }
 
@@ -421,7 +421,7 @@ sub next
   {
   my ($self,$str) = @_;
 
-  if ($str->{_cache} eq '')				# 0 => 1
+  if ($str->{_cache} eq '')                             # 0 => 1
     {
     my $min = $self->{_minlen}; $min = 1 if $min <= 0;
     $str->{_cache} = $self->first($min);
@@ -443,7 +443,7 @@ sub prev
   {
   my ($self,$str) = @_;
 
-  if ($str->{_cache} eq '')				# 0 => -1
+  if ($str->{_cache} eq '')                             # 0 => -1
     {
     my $min = $self->{_minlen}; $min = -1 if $min >= 0;
     $str->{_cache} = $self->first($min);
@@ -478,7 +478,7 @@ Math::String::Charset::Wordlist - A dictionary charset for Math::String
     use Math::String::Charset::Wordlist;
 
     my $x = Math::String::Charset::Wordlist->new ( {
-	file => 'path/dictionary.lst' } );
+        file => 'path/dictionary.lst' } );
 
 =head1 REQUIRES
 
@@ -508,12 +508,12 @@ Upon error, the field C<_error> stores the error message, then die() is called
 with this message. If you do not want the program to die (f.i. to catch the
 errors), then use the following:
 
-	use Math::String::Charset::Wordlist;
+        use Math::String::Charset::Wordlist;
 
-	$Math::String::Charset::Wordlist::die_on_error = 0;
+        $Math::String::Charset::Wordlist::die_on_error = 0;
 
-	$a = Math::String::Charset::Wordlist->new();	# error, empty set!
-	print $a->error(),"\n";
+        $a = Math::String::Charset::Wordlist->new();    # error, empty set!
+        print $a->error(),"\n";
 
 =head1 INTERNAL DETAILS
 
@@ -533,10 +533,10 @@ Create a new Math::String::Charset::Wordlist object.
 
 The constructor takes a HASH reference. The following keys can be used:
 
-	minlen		Minimum string length, for now always 0
-	maxlen		Maximum string length, for now always 1
-	file		path/filename of wordlist file
-	sep		separator character, none if undef
+        minlen          Minimum string length, for now always 0
+        maxlen          Maximum string length, for now always 1
+        file            path/filename of wordlist file
+        sep             separator character, none if undef
 
 The resulting charset will always be of order 1, type 2.
 
@@ -568,19 +568,19 @@ dictionary the last valid string).
 
 =item minlen()
 
-	$charset->minlen();
+        $charset->minlen();
 
 Return minimum string length.
 
 =item maxlen()
 
-	$charset->maxlen();
+        $charset->maxlen();
 
 Return maximum string length.
 
 =item length()
 
-	$charset->length();
+        $charset->length();
 
 Return the number of items in the charset, for higher order charsets the
 number of valid 1-character long strings. Shortcut for
@@ -598,60 +598,60 @@ lot's of values if maxlen is very high.
 
 =item class()
 
-	$charset->class($order);
+        $charset->class($order);
 
 Return the number of items in a class.
 
-	print $charset->class(5);	# how many strings with length 5?
+        print $charset->class(5);       # how many strings with length 5?
 
 =item char()
 
-	$charset->char($nr);
+        $charset->char($nr);
 
 Returns the character number $nr from the set, or undef.
 
-	print $charset->char(0);	# first char
-	print $charset->char(1);	# second char
-	print $charset->char(-1);	# last one
+        print $charset->char(0);        # first char
+        print $charset->char(1);        # second char
+        print $charset->char(-1);       # last one
 
 =item lowest()
 
-	$charset->lowest($length);
+        $charset->lowest($length);
 
 Return the number of the first string of length $length. This is equivalent
 to (but much faster):
 
-	$str = $charset->first($length);
-	$number = $charset->str2num($str);
+        $str = $charset->first($length);
+        $number = $charset->str2num($str);
 
 =item highest()
 
-	$charset->highest($length);
+        $charset->highest($length);
 
 Return the number of the last string of length $length. This is equivalent
 to (but much faster):
 
-	$str = $charset->first($length+1);
-	$number = $charset->str2num($str);
+        $str = $charset->first($length+1);
+        $number = $charset->str2num($str);
         $number--;
 
 =item order()
 
-	$order = $charset->order();
+        $order = $charset->order();
 
 Return the order of the charset: is always 1 for grouped charsets.
 See also L<type>.
 
 =item type()
 
-	$type = $charset->type();
+        $type = $charset->type();
 
 Return the type of the charset: is always 1 for grouped charsets.
 See also L<order>.
 
 =item charlen()
 
-	$character_length = $charset->charlen();
+        $character_length = $charset->charlen();
 
 Return the length of one character in the set. 1 or greater. All charsets
 used in a grouped charset must have the same length, unless you specify a
@@ -659,45 +659,45 @@ seperator char.
 
 =item seperator()
 
-	$sep = $charset->seperator();
+        $sep = $charset->seperator();
 
 Returns the separator string, or undefined if none is used.
 
 =item chars()
 
-	$chars = $charset->chars( $bigint );
+        $chars = $charset->chars( $bigint );
 
 Returns the number of characters that the string would have, when you would
 convert $bigint (Math::BigInt or Math::String object) back to a string.
 This is much faster than doing
 
-	$chars = length ("$math_string");
+        $chars = length ("$math_string");
 
 since it does not need to actually construct the string.
 
 =item first()
 
-	$charset->first( $length );
+        $charset->first( $length );
 
 Return the first string with a length of $length, according to the charset.
 See C<lowest()> for the corrospending number.
 
 =item last()
 
-	$charset->last( $length );
+        $charset->last( $length );
 
 Return the last string with a length of $length, according to the charset.
 See C<highest()> for the corrospending number.
 
 =item is_valid()
 
-	$charset->is_valid();
+        $charset->is_valid();
 
 Check wether a string conforms to the charset set or not.
 
 =item error()
 
-	$charset->error();
+        $charset->error();
 
 Returns "" for no error or an error message that occured if construction of
 the charset failed. Set C<$Math::String::Charset::die_on_error> to C<0> to
@@ -705,7 +705,7 @@ get the error message, otherwise the program will die.
 
 =item start()
 
-	$charset->start();
+        $charset->start();
 
 In list context, returns a list of all characters in the start set, that is
 the ones used at the first string position.
@@ -717,7 +717,7 @@ B<ones> and you can access if via C<< $charset->ones() >>.
 
 =item end()
 
-	$charset->end();
+        $charset->end();
 
 In list context, returns a list of all characters in the end set, aka all
 characters a string can end with.
@@ -725,7 +725,7 @@ In scalar context returns the lenght of the B<end> set.
 
 =item ones()
 
-	$charset->ones();
+        $charset->ones();
 
 In list context, returns a list of all strings consisting of one character.
 In scalar context returns the lenght of the B<ones> set.
@@ -739,8 +739,8 @@ The order of the chars in C<ones> is the same ordering as in C<start>.
 
 =item prev()
 
-	$string = Math::String->new( );
-	$charset->prev($string);
+        $string = Math::String->new( );
+        $charset->prev($string);
 
 Give the charset and a string, calculates the previous string in the sequence.
 This is faster than decrementing the number of the string and converting the
@@ -749,8 +749,8 @@ and updates the cache of the given Math::String.
 
 =item next()
 
-	$string = Math::String->new( );
-	$charset->next($string);
+        $string = Math::String->new( );
+        $charset->next($string);
 
 Give the charset and a string, calculates the next string in the sequence.
 This is faster than incrementing the number of the string and converting the
@@ -759,28 +759,28 @@ and updates the cache of the given Math::String.
 
 =item file()
 
-	$file = $charset->file();
+        $file = $charset->file();
 
 Return the path/name of the dictionary file beeing used in constructing this
 character set.
 
 =item num2str()
 
-	my ($string,$length) = $charset->num2str($number);
+        my ($string,$length) = $charset->num2str($number);
 
 Converts a Math::BigInt/Math::String to a string. In list context it returns
 the string and the length, in scalar context only the string.
 
 =item str2num()
 
-	$number = $charset->str2num($str);
+        $number = $charset->str2num($str);
 
 Converts a string (literal string or Math::String object) to the corrosponding
 number form (as Math::BigInt).
 
 =item offset()
 
-	my $offset = $charset->offset($number);
+        my $offset = $charset->offset($number);
 
 Returns the offset of the n'th word into the dictionary file.
 
@@ -788,19 +788,19 @@ Returns the offset of the n'th word into the dictionary file.
 
 =head1 EXAMPLES
 
-	use Math::String;
-	use Math::String::Charset::Wordlist;
+        use Math::String;
+        use Math::String::Charset::Wordlist;
 
-	my $cs =
-	  Math::String::Charset::Wordlist->new( { file => 'big.sorted' } );
-	my $x =
-	  Math::String->new('',$cs)->binc();	# $x is now the first word
+        my $cs =
+          Math::String::Charset::Wordlist->new( { file => 'big.sorted' } );
+        my $x =
+          Math::String->new('',$cs)->binc();    # $x is now the first word
 
-	while ($x < Math::BigInt->new(10))	# Math::BigInt->new() necc.!
-	  {
-	  # print the first 10 words
-	  print $x++,"\n";
-	  }
+        while ($x < Math::BigInt->new(10))      # Math::BigInt->new() necc.!
+          {
+          # print the first 10 words
+          print $x++,"\n";
+          }
 
 =head1 BUGS
 

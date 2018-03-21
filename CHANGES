@@ -1,5 +1,7 @@
 0.10 Not Released
 
+ * Clean whitespace and add test file t/release-whitespaces.t.
+
  * Convert t/pod_cov.t to t/release-pod-coverage.t.
 
  * Convert t/pod.t to t/release-pod-syntax.t.
