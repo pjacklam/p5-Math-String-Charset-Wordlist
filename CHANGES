@@ -1,5 +1,7 @@
 0.10 Not Released
 
+ * Add test file t/release-test-version.t.
+
  * Add test file t/release-portability.t.
 
  * New MANIFEST.SKIP file based on the default from ExtUtils::Manifest.
